@@ -1,3 +1,6 @@
+var currentVisits,
+		oldVisits;
+
 // Execute this function when the 'Make API Call' button is clicked
 function makeApiCall() {
 	console.log('Starting Request Process...');
@@ -111,6 +114,7 @@ function handleProfiles(results) {
 
 			// Query the Core Reporting API
 			queryCoreReportingApi(firstProfileId);
+			queryCoreReportingApi2(firstProfileId);
 
 		} else {
 			console.log('No views (profiles) found for this user.');
@@ -130,10 +134,21 @@ function queryCoreReportingApi(profileId) {
 		'start-date': '30daysAgo',
 		'end-date': 'yesterday',
 		'metrics': 'ga:visits',
-		'dimensions': 'ga:day'
+		'dimensions': 'ga:year,ga:month,ga:day'
 	}).execute(handleCoreReportingResults);
 }
+function queryCoreReportingApi2(profileId) {
+	console.log('2nd Querying Core Reporting API.');
 
+	// Use the Analytics Service Object to query the Core Reporting API
+	gapi.client.analytics.data.ga.get({
+		'ids': 'ga:' + profileId,
+		'start-date': '395daysAgo',
+		'end-date': '366daysAgo',
+		'metrics': 'ga:visits',
+		'dimensions': 'ga:year,ga:month,ga:day'
+	}).execute(handleCoreReportingResults2);
+}
 
 function handleCoreReportingResults(results) {
 	if (results.error) {
@@ -143,16 +158,45 @@ function handleCoreReportingResults(results) {
 		printResults(results);
 	}
 }
+function handleCoreReportingResults2(results) {
+	if (results.error) {
+		console.log('There was an error querying core reporting API: ' + results.message);
+
+	} else {
+		printResults2(results);
+	}
+}
 
 
 function printResults(results) {
 	if (results.rows && results.rows.length) {
 		console.log('View (Profile) Name: ', results.profileInfo.profileName);
-		visits = [];
+
+		//console.log(results);
+
+		currentVisits = [];
 		
 		for(var i=0; i<results.rows.length; i++){
-			createVisitArr(results.rows[i][1]);
+			createVisitArr(results.rows[i]);
 		}
+
+		// createVisitChart(); //create the chart
+	} else {
+		console.log('No results found');
+	}
+}
+function printResults2(results) {
+	if (results.rows && results.rows.length) {
+		console.log('View (Profile) Name: ', results.profileInfo.profileName);
+
+		//console.log(results);
+
+		oldVisits = [];
+		
+		for(var i=0; i<results.rows.length; i++){
+			createVisitArr2(results.rows[i]);
+		}
+
 		createVisitChart();
 	} else {
 		console.log('No results found');
@@ -184,4 +228,5 @@ $('#property-select').on('change', 'select.form-control', function(e){
 
 $('#view-select').on('change', 'select.form-control', function(e){
 	queryCoreReportingApi(this.options[e.target.selectedIndex].value);
+	queryCoreReportingApi2(this.options[e.target.selectedIndex].value);
 });
