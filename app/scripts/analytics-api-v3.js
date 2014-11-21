@@ -309,7 +309,7 @@ function handleFileSelect(evt) {
   // Closure to capture the file information.
   reader.onload = (function(theFile) {
     return function(e) {
-      console.log(e.target.result);
+      buildChart(e.target.result);
     };
   })(f);
 

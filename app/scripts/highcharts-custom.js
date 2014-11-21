@@ -12,13 +12,85 @@ var chartOptions = {
     }
   },
   yAxis: {
-    title: 
+    title:
 {      text: 'Visits (per day)'
     },
     min: 0
   },
   series: []
 };
+
+
+function buildChart(csvData) {
+  var lines = csvData.split('\n');
+  
+  $.each(lines, function(lineNo, line) {
+    var items = line.split(',');
+    var formattedItems = [Date.UTC(items[0], items[1], items[2]), parseFloat(items[3])];
+
+    var series = {
+      data: []
+    };
+    $.each(formattedItems, function(itemNo, item) {
+      /*
+      if (itemNo === 0) {
+        series.name = item;
+      } else { */
+      series.data.push(parseFloat(item));
+      //}
+    });
+    
+    chartOptions.series.push(series);
+
+  });
+
+  // Create the chart
+  var chart = new Highcharts.Chart(chartOptions);
+
+}
+
+
+
+$.get('data.csv', function(data) {
+  // Split the lines
+  var lines = data.split('\n');
+  
+  // Iterate over the lines and add categories or series
+  $.each(lines, function(lineNo, line) {
+      var items = line.split(',');
+      
+      // header line containes categories
+      if (lineNo === 0) {
+        $.each(items, function(itemNo, item) {
+          if (itemNo > 0) {
+            chartOptions.xAxis.categories.push(item);
+          }
+        });
+      }
+      
+      // the rest of the lines contain data with their name in the first 
+      // position
+      else {
+        var series = {
+          data: []
+        };
+        $.each(items, function(itemNo, item) {
+          if (itemNo === 0) {
+            series.name = item;
+          } else {
+            series.data.push(parseFloat(item));
+          }
+        });
+        
+        chartOptions.series.push(series);
+  
+      }
+      
+    });
+    
+  // Create the chart
+  var chart = new Highcharts.Chart(chartOptions);
+});
 
 
 
@@ -37,6 +109,7 @@ function createVisitChart() {
   for(var j = 0; j < 2; j++) {
 
     for (var i = 0; i < visits[j].length; i++) {
+      console.log(visits[j][i][0]);
       visits[j][i][0] = Date.UTC(visits[j][i][0][0], visits[j][i][0][1], visits[j][i][0][2]);
     }
 
